@@ -1,10 +1,30 @@
-import sqlite3
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
+import sqlite3
+from fastapi import Depends
+
+DATABASE_URL = "sqlite:///./mydb.sqlite"
+
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False}  # required for SQLite + FastAPI
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+Base = declarative_base()
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
 
 
-conn = sqlite3.connect("claims.db")
-c = conn.cursor()
-
-engine = create_engine("sqlite:///mydb.sqlite", echo=True)
-SessionLocal = sessionmaker(bind=engine)
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

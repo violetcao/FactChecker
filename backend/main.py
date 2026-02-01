@@ -1,17 +1,17 @@
-import sqlite3
-from fastapi import FastAPI
+from constants import app
+from initialisator.database import init_db, get_db
+from initialisator.models import Claims
+from sqlalchemy.orm import Session
+from fastapi import Depends
 
-conn = sqlite3.connect("claims.db")
-c = conn.cursor()
-c.execute("""CREATE TABLE IF NOT EXISTS claims
-             (id INTEGER PRIMARY KEY, text TEXT, status TEXT, source TEXT)""")
-conn.commit()
 
-# Initialise API
-app = FastAPI()
-
+# create database
+init_db()
 
 @app.get("/")
 def main_page():
-    return {"message": "Hello, FastAPI!"}
+    return {"message": "Uploaded Successfully!"}
 
+@app.get("/claims")
+def read_claims(db: Session = Depends(get_db)):
+    return db.query(Claims).all()
